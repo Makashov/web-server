@@ -1,0 +1,49 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+#    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./www/:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./nginx/ssl/:/etc/ssl/
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: ./php
+    container_name: app
+    tty: true
+    volumes:
+      - ./www:/var/www
+      - ./php/conf.d/:/usr/local/etc/php/conf.d/
+    networks:
+      - app-network
+
+  db:
+    image: mariadb:10.7
+    container_name: db
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - app-network
+    volumes:
+      - dbdata:/var/lib/mysql/
+
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
